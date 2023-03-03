@@ -22,4 +22,3 @@ dbConntect()
   server.on('listening', () => {
     debug('http:localhost:' + PORT)
   })
-
