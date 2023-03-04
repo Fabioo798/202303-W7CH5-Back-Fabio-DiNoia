@@ -5,5 +5,5 @@ export type User = {
   name: string;
   surname: string;
   friends: User[];
-  enemy: User[];
-}
+  enemies: User[];
+};
