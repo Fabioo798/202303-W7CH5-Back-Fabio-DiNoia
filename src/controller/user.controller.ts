@@ -84,7 +84,6 @@ export class UserController {
   async editProfile(req: RequestPlus, res: Response, next: NextFunction) {
     try {
       debug('Updating profile...');
-      // eslint-disable-next-line no-debugger
       if (!req.info?.id)
         throw new HTTPError(404, 'User not found', 'User not found');
       const member = await this.repo.queryId(req.info.id);
