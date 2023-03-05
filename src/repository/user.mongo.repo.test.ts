@@ -6,6 +6,13 @@ jest.mock('./user.mongo.model');
 
 describe('Given the UserRepo class', () => {
   const repo = UserRepo.getInstance();
+
+  const mockPopulateFunction = (mockPopulateValue: unknown) => ({
+    populate: jest.fn().mockImplementation(() => ({
+      populate: jest.fn().mockResolvedValue(mockPopulateValue),
+    })),
+  });
+
   describe('When it is called', () => {
     test('Then it should be instantiated', () => {
       expect(repo).toBeInstanceOf(UserRepo);
@@ -14,34 +21,37 @@ describe('Given the UserRepo class', () => {
 
   describe('When query method is called', () => {
     test('Then it should return an array', async () => {
-      const mockUser = [{ user: 'test' }];
-      (UserModel.find as jest.Mock).mockImplementation(() => ({
-        populate: jest.fn().mockResolvedValue(mockUser),
-      }));
+      const mockPopulateValue = [{ id: '1' }, { id: '2' }];
+      (UserModel.find as jest.Mock).mockImplementation(() =>
+        mockPopulateFunction(mockPopulateValue)
+      );
 
       const result = await repo.query();
 
       expect(UserModel.find).toHaveBeenCalled();
-      expect(result).toEqual(mockUser);
+      expect(result).toEqual(mockPopulateValue);
     });
   });
 
-  describe('When i use queryId', () => {
-    beforeEach(async () => {
-      (UserModel.findById as jest.Mock).mockImplementation(() => ({
-        populate: jest.fn().mockResolvedValue({ id: '1' }),
-      }));
-    });
-    test('Then should return the selected data', async () => {
+  describe('When the queryId method is used', () => {
+    test('Then if the findById method resolve value to an object, it should return the object', async () => {
+      const mockPopulateValue = { id: '1' };
+      (UserModel.findById as jest.Mock).mockImplementation(() =>
+        mockPopulateFunction(mockPopulateValue)
+      );
+
       const result = await repo.queryId('1');
       expect(UserModel.findById).toHaveBeenCalled();
       expect(result).toEqual({ id: '1' });
     });
-    test('Then if the findById method resolve value to undefined, it should throw an Error', async () => {
-      (UserModel.findById as jest.Mock).mockImplementation(() => ({
-        populate: jest.fn().mockResolvedValue(null),
-      }));
-      expect(async () => repo.queryId('3')).rejects.toThrow();
+
+    test('Then if the findById method resolve value to null, it should throw an Error', async () => {
+      const mockPopulateValue = null;
+      (UserModel.findById as jest.Mock).mockImplementation(() =>
+        mockPopulateFunction(mockPopulateValue)
+      );
+
+      expect(async () => repo.queryId('')).rejects.toThrow();
     });
   });
 
