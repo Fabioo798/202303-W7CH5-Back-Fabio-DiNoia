@@ -17,11 +17,11 @@ export class UserController {
     try {
       debug('register:post method');
 
-      if (!req.body.email || !req.body.password)
+      if (!req.body.email || !req.body.password || !req.body.name)
         throw new HTTPError(
           401,
           'Unauthorized',
-          'Invalid User Name o password'
+          'Invalid Name, Email or password'
         );
 
       req.body.password = await Auth.hash(req.body.password);
@@ -76,6 +76,22 @@ export class UserController {
           token,
         },
       });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async editProfile(req: RequestPlus, res: Response, next: NextFunction) {
+    try {
+      debug('Updating profile...');
+      // eslint-disable-next-line no-debugger
+      if (!req.info?.id)
+        throw new HTTPError(404, 'User not found', 'User not found');
+      const member = await this.repo.queryId(req.info.id);
+      req.body.id = member.id;
+      const updatedMember = await this.repo.update(req.body);
+      debug('Profile updated!');
+      res.json({ results: [updatedMember] });
     } catch (error) {
       next(error);
     }

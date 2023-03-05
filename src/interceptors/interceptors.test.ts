@@ -1,6 +1,7 @@
-import { RequestPlus } from '../interfaces/interfaces.js';
+import { RequestPlus, TokenPayload } from '../interfaces/interfaces.js';
 import { Interceptors } from './interceptors.js';
 import { Response } from 'express';
+import { Auth } from '../services/auth.js';
 
 jest.mock('../services/auth');
 jest.mock('../config.js', () => ({
@@ -19,24 +20,72 @@ const next = jest.fn();
 
 describe('Given a interceptor class', () => {
   const interceptor = new Interceptors();
-  describe('When logged is called ', () => {
-    test('Then it should do next', () => {
-      (req.get as jest.Mock).mockReturnValue('Bearer test');
+  describe('When call the logged method', () => {
+    describe('When called with correct parameters', () => {
+      test('Then it should call next function', () => {
+        (req.get as jest.Mock).mockReturnValue('Bearer test');
+        (Auth.verifyJWTgettingPayload as jest.Mock).mockResolvedValue({
+          id: 'Test',
+        } as TokenPayload);
+        interceptor.logged(req, resp, next);
+        expect(next).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('When called with no Authorization header', () => {
+    test('Then it should call next function (error)', () => {
+      (req.get as jest.Mock).mockReturnValue(undefined);
 
       interceptor.logged(req, resp, next);
       expect(next).toHaveBeenCalled();
     });
-    test('Then if the token is invalid show catch error and throw next', () => {
-      (req.get as jest.Mock).mockReturnValue('ciao');
+  });
+  describe('When called with no barer', () => {
+    test('Then it should call next function (error)', () => {
+      (req.get as jest.Mock).mockReturnValue('test');
 
       interceptor.logged(req, resp, next);
       expect(next).toHaveBeenCalled();
     });
-    test('Then if req.get return undefined, it should be catch and call next function', () => {
-      (req.get as jest.Mock).mockReturnValue('');
+  });
 
-      interceptor.logged(req, resp, next);
-      expect(next).toHaveBeenCalled();
+  describe('When call the authorized method', () => {
+    describe('When called with correct parameters', () => {
+      test('Then it should call next function', () => {
+        req.body = { id: '1' };
+        req.info = { id: '1' } as unknown as TokenPayload;
+        interceptor.authorized(req, resp, next);
+        expect(next).toHaveBeenCalled();
+      });
+    });
+
+    describe('When called with no req body id', () => {
+      test('Then it should take req params id and call next if matches', () => {
+        req.body = { name: 'Test' };
+        req.params = { id: '1' };
+        req.info = { id: '1' } as unknown as TokenPayload;
+        interceptor.authorized(req, resp, next);
+        expect(next).toHaveBeenCalled();
+      });
+    });
+
+    describe('When called with no matching ids', () => {
+      test('Then it should call next (error)', () => {
+        req.body = { id: '2' };
+        req.info = { id: '1' } as unknown as TokenPayload;
+        interceptor.authorized(req, resp, next);
+        expect(next).toHaveBeenCalled();
+      });
+    });
+
+    describe('When called with no req.info', () => {
+      test('Then it should call next function (error)', () => {
+        delete req.info;
+
+        interceptor.authorized(req, resp, next);
+        expect(next).toHaveBeenCalled();
+      });
     });
   });
 });

@@ -33,7 +33,7 @@ export class UserRepo implements Repo<User> {
         friends: 0,
         enemies: 0,
         id: 0,
-      });;
+      });
     return data;
   }
 
@@ -80,6 +80,7 @@ export class UserRepo implements Repo<User> {
   async update(info: Partial<User>): Promise<User> {
     debug('update');
     const data = await UserModel.findByIdAndUpdate(info.id, info, {
+      select: '-enemies',
       new: true,
     });
     if (!data)

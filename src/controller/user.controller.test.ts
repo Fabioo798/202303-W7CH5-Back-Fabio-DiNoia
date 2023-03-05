@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { User } from '../entities/user.js';
-import { Repo, RequestPlus } from '../interfaces/interfaces.js';
+import { Repo, RequestPlus, TokenPayload } from '../interfaces/interfaces.js';
 import { Auth } from '../services/auth.js';
 import { UserController } from './user.controller.js';
 
@@ -51,6 +51,7 @@ describe('Given the UsersController', () => {
     test('Then if the user information is completed, it should return the resp.satus and resp.json', async () => {
       const req = {
         body: {
+          name: 'test',
           email: 'test',
           password: 'test',
         },
@@ -156,6 +157,46 @@ describe('Given the UsersController', () => {
     });
   });
 
+  describe('When call the editProfile method', () => {
+    describe('When all params are correct', () => {
+      test('Then it should call resp.json', async () => {
+        const req = {
+          body: { name: 'test', email: 'Test', password: 'test' },
+          info: { id: '1' },
+        } as unknown as RequestPlus;
+        (mockRepo.queryId as jest.Mock).mockResolvedValue({});
+        (mockRepo.update as jest.Mock).mockResolvedValue({});
+        await controller.editProfile(req, resp, next);
+        expect(resp.json).toHaveBeenCalled();
+      });
+    });
+
+    describe('When repo.queryId fails', () => {
+      test('Then it should call next', async () => {
+        const req = {
+          body: { name: 'test', email: 'Test', password: 'test' },
+          info: { id: '1' },
+        } as unknown as RequestPlus;
+        (mockRepo.queryId as jest.Mock).mockResolvedValue(undefined);
+
+        await controller.editProfile(req, resp, next);
+        expect(next).toHaveBeenCalled();
+      });
+    });
+
+    describe('When there is no req.info.id', () => {
+      test('Then it should call next', async () => {
+        const req = {
+          body: { name: 'test', email: 'Test', password: 'test' },
+          info: { id: '1' },
+        } as unknown as RequestPlus;
+        req.info = undefined as unknown as TokenPayload;
+        await controller.editProfile(req, resp, next);
+        expect(next).toHaveBeenCalled();
+      });
+    });
+  });
+
   describe('When addRelation method is called', () => {
     test('Then if the user selected friend and information is completed, it should return the resp.json', async () => {
       const req = {
@@ -209,6 +250,7 @@ describe('Given the UsersController', () => {
         info: { id: undefined },
         body: { relation: 'friend' },
       } as unknown as RequestPlus;
+      req.info = undefined as unknown as TokenPayload;
 
       await controller.addRelation(req, resp, next);
       expect(next).toHaveBeenCalled();
@@ -292,6 +334,7 @@ describe('Given the UsersController', () => {
       const req = {
         info: { id: undefined },
       } as unknown as RequestPlus;
+      req.info = undefined as unknown as TokenPayload;
 
       await controller.removeRelation(req, resp, next);
       expect(next).toHaveBeenCalled();

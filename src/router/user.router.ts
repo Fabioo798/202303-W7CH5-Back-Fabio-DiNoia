@@ -9,7 +9,7 @@ const repo = UserRepo.getInstance();
 const interceptor = new Interceptors();
 const controller = new UserController(repo);
 
-userRouter.get('/', controller.getAll.bind(controller));
+userRouter.get('/', interceptor.logged, controller.getAll.bind(controller));
 userRouter.post('/login', controller.logIn.bind(controller));
 userRouter.post('/register', controller.register.bind(controller));
 userRouter.patch(
@@ -21,4 +21,10 @@ userRouter.delete(
   '/remove_relation/:id',
   interceptor.logged,
   controller.removeRelation.bind(controller)
+);
+userRouter.patch(
+  '/edit_profile',
+  interceptor.logged,
+  interceptor.authorized,
+  controller.editProfile.bind(controller)
 );

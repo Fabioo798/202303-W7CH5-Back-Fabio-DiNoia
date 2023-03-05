@@ -1,17 +1,25 @@
-import { Schema, model, SchemaTypes } from "mongoose";
-import { User } from "../entities/user.js";
+import { Schema, model, SchemaTypes } from 'mongoose';
+import { User } from '../entities/user.js';
 
 const userSchema = new Schema<User>({
-  email:  {
+  email: {
     type: String,
     required: true,
     unique: true,
   },
+
   password: {
     type: String,
     required: true,
     unique: false,
   },
+
+  name: {
+    type: String,
+    required: true,
+    unique: false,
+  },
+
   friends: [
     {
       type: SchemaTypes.ObjectId,
@@ -21,9 +29,9 @@ const userSchema = new Schema<User>({
   enemies: [
     {
       type: SchemaTypes.ObjectId,
-      ref: 'User'
-    }
-  ]
+      ref: 'User',
+    },
+  ],
 });
 
 userSchema.set('toJSON', {
@@ -32,7 +40,7 @@ userSchema.set('toJSON', {
     delete returnedObject.__v;
     delete returnedObject._id;
     delete returnedObject.password;
-  }
+  },
 });
 
 export const UserModel = model('User', userSchema, 'users');
