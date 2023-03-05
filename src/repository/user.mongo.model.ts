@@ -1,5 +1,5 @@
 import { Schema, model, SchemaTypes } from "mongoose";
-import { User } from "../entities/user";
+import { User } from "../entities/user.js";
 
 const userSchema = new Schema<User>({
   email:  {
@@ -10,7 +10,7 @@ const userSchema = new Schema<User>({
   password: {
     type: String,
     required: true,
-    unique: true,
+    unique: false,
   },
   friends: [
     {
@@ -18,7 +18,7 @@ const userSchema = new Schema<User>({
       ref: 'User',
     },
   ],
-  enemy: [
+  enemies: [
     {
       type: SchemaTypes.ObjectId,
       ref: 'User'

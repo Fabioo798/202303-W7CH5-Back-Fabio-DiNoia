@@ -1,12 +1,9 @@
 import { config } from '../config.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { TokenPayload } from '../interfaces/interfaces.js';
 
-export interface TokenPayload extends jwt.JwtPayload {
-  id: string;
-  email: string;
-  role: string;
-}
+
 
 const salt = 10;
 
